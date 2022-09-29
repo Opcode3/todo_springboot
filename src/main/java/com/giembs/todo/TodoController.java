@@ -24,6 +24,7 @@ public class TodoController {
     @GetMapping("todo/{id}")
     public ResponseEntity<ResponseWrapper<TodoResponse>> getTodoById(@PathVariable("id") Long id){
         TodoResponse todoResponse = todoService.fetchTodo(id);
+        ReadJson readJson = new ReadJson();
         return ResponseEntity.ok(new ResponseWrapper<>("Successfully retrieved!", todoResponse));
     }
     // update_todo_by_id
@@ -42,7 +43,7 @@ public class TodoController {
 
     // delete_todo_by_id
     @DeleteMapping("todo/{id}")
-    public ResponseEntity<ResponseWrapper> deleteTodo(@PathVariable("id") Long id){
+    public ResponseEntity<ResponseWrapper> deleteTodo(@PathVariable("id") Long id) {
         todoService.removeTodo(id);
         return ResponseEntity.ok(new ResponseWrapper("Todo was deleted successfully!"));
     }

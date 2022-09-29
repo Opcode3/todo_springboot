@@ -1,5 +1,6 @@
 package com.giembs.todo;
 
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -8,6 +9,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,19 +24,20 @@ public class TodoServiceImpl implements TodoService{
 
     @Override
     public TodoResponse fetchTodo(Long id) {
-        Todo todo = todoRepo.findById(id).orElseThrow( ()-> new RuntimeException("Error: This todo is not in existence."));
+        Todo todo = todoRepo.findById(id).orElseThrow(() -> new TodoNotFoundException("Error: This todo is not in existence."));
         return convertToResponse(todo);
     }
 
     @Override
     public TodoResponse editTodo(Long id, TodoRequest todoRequest) {
-        Todo current_todo = todoRepo.findById(id).orElseThrow( ()-> new RuntimeException("Error: This todo is not in existence."));
-        current_todo.setTitle(todoRequest.getTitle());
-        current_todo.setDescription(todoRequest.getDescription());
-        current_todo.setIsCompleted(todoRequest.getIsCompleted() );
-        current_todo.setUpdatedAt(Instant.now());
+        Optional<Todo> current_todo = todoRepo.findById(id);
+        if(!current_todo.isPresent()) throw  new TodoNotFoundException("Error: This todo is not in existence.");
+        current_todo.get().setTitle(todoRequest.getTitle());
+        current_todo.get().setDescription(todoRequest.getDescription());
+        current_todo.get().setIsCompleted(todoRequest.getIsCompleted() );
+        current_todo.get().setUpdatedAt(Instant.now());
 
-        Todo just_updated_todo = todoRepo.save(current_todo);
+        Todo just_updated_todo = todoRepo.save(current_todo.get());
         return convertToResponse(just_updated_todo);
     }
 
@@ -51,17 +54,17 @@ public class TodoServiceImpl implements TodoService{
     }
 
     @Override
-    public void removeTodo(Long id) {
+    public void removeTodo(Long id){
         try{
             todoRepo.deleteById(id);
         }catch (Exception e){
-            throw new RuntimeException("This todo is not existing.");
+            throw new TodoNotFoundException("This todo is not existing.");
         }
     }
 
     @Override
     public TodoResponse completeTodo(Long id) {
-        Todo current_todo = todoRepo.findById(id).orElseThrow( ()-> new RuntimeException("Error: This todo is not in existence."));
+        Todo current_todo = todoRepo.findById(id).get();
         current_todo.setIsCompleted(1);
         current_todo.setUpdatedAt(Instant.now());
 
